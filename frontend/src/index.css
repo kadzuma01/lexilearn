@@ -1,0 +1,201 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  --bg: #0D0D0D;
+  --bg2: #161616;
+  --card: #1C1C1C;
+  --card2: #252525;
+  --border: #2E2E2E;
+  --text: #FFFFFF;
+  --text2: #A0A0A0;
+  --text3: #6A6A6A;
+  --accent: #4A90E2;
+  --accent-hover: #3A7FD5;
+  --success: #4CAF50;
+  --error: #F44336;
+
+  --a1: #4CAF50;
+  --a2: #8BC34A;
+  --b1: #FFC107;
+  --b2: #FF9800;
+  --c1: #FF5722;
+  --c2: #F44336;
+}
+
+* {
+  margin: 0; padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body, #root {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* App shell container */
+.app-shell {
+  width: min(100%, 1100px);
+  max-width: 1100px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  background: var(--bg);
+  position: relative;
+  overflow-x: hidden;
+  padding: 0 16px;
+}
+
+@media (max-width: 580px) {
+  .app-shell {
+    width: 100%;
+    max-width: 100%;
+    padding: 0 12px;
+  }
+}
+
+@media (min-width: 900px) {
+  .app-shell {
+    padding: 0 24px;
+  }
+  .modal-sheet {
+    max-width: 760px;
+  }
+}
+
+/* ── Typography ── */
+h1 { font-size: 24px; font-weight: 700; }
+h2 { font-size: 20px; font-weight: 600; }
+h3 { font-size: 16px; font-weight: 600; }
+
+/* ── Inputs ── */
+.input {
+  width: 100%;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  color: var(--text);
+  font-size: 15px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.input:focus { border-color: var(--accent); }
+.input::placeholder { color: var(--text3); }
+
+/* ── Buttons ── */
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 15px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: inherit;
+  transition: opacity 0.15s, transform 0.1s;
+}
+.btn:active { transform: scale(0.98); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-primary { background: var(--accent); color: white; }
+.btn-primary:hover { background: var(--accent-hover); }
+.btn-success { background: var(--success); color: white; }
+.btn-danger  { background: var(--error); color: white; }
+.btn-outline {
+  background: transparent;
+  border: 1.5px solid var(--border);
+  color: var(--text2);
+}
+.btn-ghost {
+  background: var(--card);
+  color: var(--text);
+}
+
+/* ── Cards ── */
+.card {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 16px;
+}
+
+/* ── Page wrapper with bottom nav ── */
+.page {
+  padding: 0 0 80px 0;
+  min-height: 100dvh;
+}
+
+/* ── Scrollbars ── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* ── Animations ── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(40px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes flipIn {
+  from { transform: rotateY(90deg); opacity: 0; }
+  to   { transform: rotateY(0deg); opacity: 1; }
+}
+@keyframes pop {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+.fade-in  { animation: fadeIn  0.3s ease both; }
+.slide-up { animation: slideUp 0.35s ease both; }
+
+/* ── Toast ── */
+.toast {
+  position: fixed;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--card2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 12px 24px;
+  border-radius: 24px;
+  font-size: 13px;
+  z-index: 1000;
+  white-space: nowrap;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  animation: slideUp 0.3s ease;
+}
+
+/* ── Modal ── */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex; align-items: flex-end;
+  z-index: 200;
+  padding: 0;
+}
+.modal-sheet {
+  background: var(--card);
+  border-radius: 20px 20px 0 0;
+  padding: 24px 20px 40px;
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+  animation: slideUp 0.3s ease;
+}
+.modal-handle {
+  width: 36px; height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  margin: 0 auto 20px;
+}
