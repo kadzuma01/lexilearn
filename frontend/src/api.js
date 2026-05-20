@@ -43,5 +43,6 @@ export const api = {
   adminCreateWord: (d)  => req('POST', '/admin/words', d),
   adminUpdateWord: (id, d) => req('PUT', `/admin/words/${id}`, d),
   adminDeleteWord: (id)   => req('DELETE', `/admin/words/${id}`),
+  adminGetUsers:   ()     => req('GET', '/admin/users'),
   adminStats:      ()     => req('GET', '/admin/stats'),
 }

@@ -538,6 +538,24 @@ def admin_get_words():
     return jsonify({'words': [word_to_dict(w) for w in words], 'total': total, 'page': page, 'per_page': per_page})
 
 
+@app.route('/api/admin/users', methods=['GET'])
+@admin_required
+def admin_get_users():
+    users = User.query.order_by(User.id).all()
+    return jsonify({
+        'users': [
+            {
+                'id': u.id,
+                'login': u.login,
+                'favorite_color': u.favorite_color,
+                'is_admin': u.is_admin,
+                'created_at': u.created_at.isoformat() if u.created_at else None,
+            }
+            for u in users
+        ]
+    })
+
+
 @app.route('/api/admin/words', methods=['POST'])
 @admin_required
 def admin_create_word():

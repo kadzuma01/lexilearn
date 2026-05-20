@@ -23,18 +23,24 @@ export function LevelBadge({ level, size = 'md' }) {
 export function LevelCard({ level, name, subname, onClick, progress, total }) {
   const color = LEVEL_COLORS[level] || '#888'
   const pct = total > 0 ? Math.round((progress / total) * 100) : 0
+  const [isHovered, setIsHovered] = useState(false)
+  
   return (
-    <button onClick={onClick} style={{
-      background: color + '18',
-      border: `1.5px solid ${color}40`,
-      borderRadius: 14, padding: '16px',
-      cursor: 'pointer', textAlign: 'left',
-      transition: 'transform 0.15s, background 0.15s',
-      display: 'flex', flexDirection: 'column', gap: 6,
-    }}
+    <button onClick={onClick}
+      className={isHovered ? "level-card-hover" : "level-card"}
+      style={{
+        background: color + '18',
+        border: `1.5px solid ${color}40`,
+        borderRadius: 14, padding: '16px',
+        cursor: 'pointer', textAlign: 'left',
+        transition: 'transform 0.15s, box-shadow 0.3s ease',
+        display: 'flex', flexDirection: 'column', gap: 6,
+        '--level-color': color,
+      }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       onMouseDown={e => e.currentTarget.style.transform = 'scale(0.97)'}
       onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
-      onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
       onTouchStart={e => e.currentTarget.style.transform = 'scale(0.97)'}
       onTouchEnd={e => e.currentTarget.style.transform = 'scale(1)'}
     >
@@ -126,7 +132,46 @@ export function SpeakButton({ word, size = 20 }) {
   )
 }
 
-// inject spinner keyframe
+// inject spinner keyframe and level card glow animation
 const style = document.createElement('style')
-style.textContent = '@keyframes spin { to { transform: rotate(360deg); } }'
+style.textContent = `
+  @keyframes spin { to { transform: rotate(360deg); } }
+  
+  @keyframes levelCardGlow {
+    0% {
+      box-shadow: 
+        inset 0 0 0 1.5px var(--level-color),
+        0 0 20px 0 var(--level-color),
+        inset 0 0 5px 0 rgba(255, 255, 255, 0.1);
+    }
+    25% {
+      box-shadow: 
+        inset 0 0 0 1.5px var(--level-color),
+        0 0 25px 3px var(--level-color),
+        inset 0 0 10px 2px rgba(255, 255, 255, 0.15);
+    }
+    50% {
+      box-shadow: 
+        inset 0 0 0 1.5px var(--level-color),
+        0 0 20px 0 var(--level-color),
+        inset 0 0 5px 0 rgba(255, 255, 255, 0.1);
+    }
+    75% {
+      box-shadow: 
+        inset 0 0 0 1.5px var(--level-color),
+        0 0 25px 3px var(--level-color),
+        inset 0 0 10px 2px rgba(255, 255, 255, 0.15);
+    }
+    100% {
+      box-shadow: 
+        inset 0 0 0 1.5px var(--level-color),
+        0 0 20px 0 var(--level-color),
+        inset 0 0 5px 0 rgba(255, 255, 255, 0.1);
+    }
+  }
+  
+  .level-card-hover {
+    animation: levelCardGlow 3s ease-in-out infinite;
+  }
+`
 document.head.appendChild(style)

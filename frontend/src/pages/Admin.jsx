@@ -25,6 +25,9 @@ export default function Admin() {
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState(null)
   const [deleteConfirm, setDeleteConfirm] = useState(null)
+  const [users, setUsers] = useState([])
+  const [usersLoading, setUsersLoading] = useState(false)
+  const [usersVisible, setUsersVisible] = useState(false)
 
   useEffect(() => {
     if (!user?.is_admin) { nav('/'); return }
@@ -41,6 +44,19 @@ export default function Admin() {
     } catch (e) {}
     finally { setLoading(false) }
   }, [])
+
+  const fetchUsers = async () => {
+    setUsersLoading(true)
+    try {
+      const res = await api.adminGetUsers()
+      setUsers(res.users || [])
+      setUsersVisible(true)
+    } catch (e) {
+      setToast(e.message)
+    } finally {
+      setUsersLoading(false)
+    }
+  }
 
   useEffect(() => {
     const timer = setTimeout(() => { setPage(1); fetchWords(level, search, 1) }, 300)
@@ -107,6 +123,19 @@ export default function Admin() {
           </div>
         )}
 
+        {stats && (
+          <div style={{ padding:'0 20px 16px', display:'flex', gap:10, flexWrap:'wrap', alignItems:'center' }}>
+            <button onClick={fetchUsers} className="btn btn-outline" style={{ width: 'auto', whiteSpace: 'nowrap' }} disabled={usersLoading}>
+              {usersLoading ? 'Loading...' : t('showUsers')}
+            </button>
+            {usersVisible && (
+              <button onClick={() => setUsersVisible(false)} className="btn btn-outline" style={{ width: 'auto', whiteSpace: 'nowrap' }}>
+                {t('hideUsers')}
+              </button>
+            )}
+          </div>
+        )}
+
         {/* Word counts by level */}
         {stats && (
           <div style={{ padding:'0 20px 16px', display:'flex', gap:6, flexWrap:'wrap' }}>
@@ -119,6 +148,36 @@ export default function Admin() {
                 <span style={{ fontSize:11, color:'#888' }}>{stats.words_by_level[lv]}</span>
               </div>
             ))}
+          </div>
+        )}
+
+        {usersVisible && (
+          <div style={{ padding:'0 20px 20px', display:'grid', gap:10 }}>
+            <div style={{ background:'#1C1C1C', borderRadius:14, padding:16 }}>
+              <div style={{ fontSize:15, fontWeight:700, color:'#fff', marginBottom:12 }}>Users</div>
+              {users.length > 0 ? (
+                <div style={{ display:'grid', gap:10 }}>
+                  {users.map(u => (
+                    <div key={u.id} style={{ display:'grid', gridTemplateColumns:'1fr auto', gap:8, padding:12, borderRadius:12, background:'#101010', border:'1px solid #2E2E2E' }}>
+                      <div>
+                        <div style={{ fontSize:14, fontWeight:700, color:'#fff' }}>{u.login}</div>
+                        <div style={{ fontSize:12, color:'#888', marginTop:4 }}>
+                          ID: {u.id} · Admin: {u.is_admin ? 'Yes' : 'No'} · Color: {u.favorite_color}
+                        </div>
+                        <div style={{ fontSize:12, color:'#666', marginTop:4 }}>Created: {new Date(u.created_at).toLocaleString()}</div>
+                      </div>
+                      <div style={{ display:'flex', alignItems:'center', justifyContent:'flex-end' }}>
+                        <span style={{ fontSize:12, color:'#4A90E2', padding:'4px 10px', borderRadius:999, background:'#4A90E222' }}>
+                          {u.is_admin ? 'ADMIN' : 'USER'}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ color:'#888', fontSize:13 }}>No users found.</div>
+              )}
+            </div>
           </div>
         )}
 
