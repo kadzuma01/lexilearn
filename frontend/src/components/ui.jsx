@@ -24,10 +24,27 @@ export function LevelCard({ level, name, subname, onClick, progress, total }) {
   const color = LEVEL_COLORS[level] || '#888'
   const pct = total > 0 ? Math.round((progress / total) * 100) : 0
   const [isHovered, setIsHovered] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+  const [touchActive, setTouchActive] = useState(false)
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const media = window.matchMedia('(max-width: 620px)')
+    const update = (event) => setIsMobile(event.matches)
+    update(media)
+    if (media.addEventListener) media.addEventListener('change', update)
+    else media.addListener(update)
+    return () => {
+      if (media.removeEventListener) media.removeEventListener('change', update)
+      else media.removeListener(update)
+    }
+  }, [])
   
   return (
     <button onClick={onClick}
-      className={isHovered ? "level-card-hover" : "level-card"}
+      className={
+        `${isHovered ? 'level-card-hover' : 'level-card'}${isMobile && touchActive ? ' level-card-mobile-press' : ''}`
+      }
       style={{
         background: color + '18',
         border: `1.5px solid ${color}40`,
@@ -41,8 +58,15 @@ export function LevelCard({ level, name, subname, onClick, progress, total }) {
       onMouseLeave={() => setIsHovered(false)}
       onMouseDown={e => e.currentTarget.style.transform = 'scale(0.97)'}
       onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
-      onTouchStart={e => e.currentTarget.style.transform = 'scale(0.97)'}
-      onTouchEnd={e => e.currentTarget.style.transform = 'scale(1)'}
+      onTouchStart={e => {
+        setTouchActive(true)
+        e.currentTarget.style.transform = 'scale(0.97)'
+      }}
+      onTouchEnd={e => {
+        setTouchActive(false)
+        e.currentTarget.style.transform = 'scale(1)'
+      }}
+      onTouchCancel={() => setTouchActive(false)}
     >
       <span style={{ fontSize: 22, fontWeight: 800, color }}>{level}</span>
       <span style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>{name}</span>
@@ -169,9 +193,28 @@ style.textContent = `
         inset 0 0 5px 0 rgba(255, 255, 255, 0.1);
     }
   }
+
+  @keyframes levelCardPressMobile {
+    0% {
+      transform: scale(0.97);
+      box-shadow: 0 0 0 0 rgba(255,255,255,0);
+    }
+    50% {
+      transform: scale(1.03);
+      box-shadow: 0 14px 30px rgba(255,255,255,0.08);
+    }
+    100% {
+      transform: scale(1);
+      box-shadow: 0 0 0 0 rgba(255,255,255,0);
+    }
+  }
+  .level-card-mobile-press {
+    animation: levelCardPressMobile 0.28s ease-out;
+  }
   
   .level-card-hover {
     animation: levelCardGlow 3s ease-in-out infinite;
   }
-`
+`;
+
 document.head.appendChild(style)

@@ -165,6 +165,9 @@ export default function Admin() {
                           ID: {u.id} · Admin: {u.is_admin ? 'Yes' : 'No'} · Color: {u.favorite_color}
                         </div>
                         <div style={{ fontSize:12, color:'#666', marginTop:4 }}>Created: {new Date(u.created_at).toLocaleString()}</div>
+                        <div style={{ fontSize:12, color:'#666', marginTop:4 }}>
+                          Studied: {u.study_minutes ?? 0} {t('minutes')}
+                        </div>
                       </div>
                       <div style={{ display:'flex', alignItems:'center', justifyContent:'flex-end' }}>
                         <span style={{ fontSize:12, color:'#4A90E2', padding:'4px 10px', borderRadius:999, background:'#4A90E222' }}>

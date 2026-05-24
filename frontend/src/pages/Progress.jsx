@@ -35,17 +35,13 @@ export default function Progress() {
           ) : (
             <>
               {/* Overall progress card */}
-              <div style={{ background:'#1C1C1C', borderRadius:20, padding:'20px', marginBottom:20 }}>
+              <div className="overall-progress-card" style={{ background:'#1C1C1C', borderRadius:20, padding:'20px', marginBottom:20, overflow:'hidden' }}>
                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
                   <span style={{ fontSize:14, fontWeight:600 }}>{t('overallProgress')}</span>
-                  <span style={{ fontSize:28, fontWeight:900, color:'#4A90E2' }}>{data.overall.percentage}%</span>
+                  <span className="overall-progress-value" style={{ fontSize:28, fontWeight:900, color:'#4A90E2' }}>{data.overall.percentage}%</span>
                 </div>
-                <div style={{ background:'#2E2E2E', borderRadius:8, height:10, overflow:'hidden', marginBottom:12 }}>
-                  <div style={{
-                    width:`${data.overall.percentage}%`, height:'100%',
-                    background:'linear-gradient(90deg,#4A90E2,#7B5EA7)',
-                    borderRadius:8, transition:'width 1s ease',
-                  }} />
+                <div className="overall-progress-bar" style={{ marginBottom:12 }}>
+                  <div className="overall-progress-bar-fill" style={{ width:`${data.overall.percentage}%` }} />
                 </div>
                 <div style={{ display:'flex', gap:6, fontSize:12, color:'#888' }}>
                   <span>📚 {data.overall.learned} / {data.overall.total} {t('words')}</span>

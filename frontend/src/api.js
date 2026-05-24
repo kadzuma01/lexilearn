@@ -8,9 +8,22 @@ async function req(method, path, body) {
   }
   if (body !== undefined) opts.body = JSON.stringify(body)
   const res = await fetch(BASE + path, opts)
-  const data = await res.json().catch(() => ({}))
-  if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`)
-  return data
+  if (res.ok) {
+    // try parse JSON, fall back to empty object
+    const data = await res.json().catch(() => ({}))
+    return data
+  }
+
+  // on error try to extract useful message (JSON or plain text)
+  const text = await res.text().catch(() => '')
+  let errMsg = `HTTP ${res.status}`
+  try {
+    const j = JSON.parse(text)
+    errMsg = j.error || j.message || errMsg
+  } catch (e) {
+    if (text) errMsg = text
+  }
+  throw new Error(errMsg)
 }
 
 export const api = {
@@ -45,4 +58,9 @@ export const api = {
   adminDeleteWord: (id)   => req('DELETE', `/admin/words/${id}`),
   adminGetUsers:   ()     => req('GET', '/admin/users'),
   adminStats:      ()     => req('GET', '/admin/stats'),
+
+  // Chat assistant
+  chatHistory: () => req('GET', '/chat/history'),
+  chatSend:    (message) => req('POST', '/chat', { message }),
+  chatClear:   () => req('POST', '/chat/clear'),
 }

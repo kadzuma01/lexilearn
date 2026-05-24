@@ -7,6 +7,12 @@ from functools import wraps
 import random
 import os
 
+try:
+    import openai
+    openai.api_key = os.environ.get('OPENAI_API_KEY')
+except ImportError:
+    openai = None
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'lexilearn-secret-key-2024-secure'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///lexilearn.db'
@@ -98,6 +104,16 @@ class SessionWord(db.Model):
     word_id = db.Column(db.Integer, db.ForeignKey('words.id'), nullable=False)
     correct = db.Column(db.Boolean, nullable=False)
     word = db.relationship('Word')
+
+
+class ChatMessage(db.Model):
+    __tablename__ = 'chat_messages'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    role = db.Column(db.String(16), nullable=False)
+    text = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    user = db.relationship('User', backref='chat_messages')
 
 
 # ─────────────────────────────────────────
@@ -516,6 +532,97 @@ def settings_route():
     return jsonify({'message': 'Settings saved'})
 
 
+def _build_chat_prompt(user, user_message, history):
+    system_prompt = (
+        'You are LexiLearn, a friendly Russian/Kazakh/English language learning assistant. '
+        'Help the user with the app, vocabulary, exercises, and explain answers clearly. '
+        'Answer in the same language as the user question when possible.'
+    )
+    messages = [{'role': 'system', 'content': system_prompt}]
+    for item in history[-12:]:
+        messages.append({'role': item.role, 'content': item.text})
+    messages.append({'role': 'user', 'content': user_message})
+    return messages
+
+
+def _get_ai_reply(user, user_message):
+    # Ensure OpenAI client and API key are available
+    if openai is None:
+        app.logger.warning('OpenAI SDK is not installed')
+        return ('AI недоступен (отсутствует библиотека openai). Установите пакет openai.')
+
+    api_key = os.environ.get('OPENAI_API_KEY') or getattr(openai, 'api_key', None)
+    if not api_key:
+        app.logger.warning('OPENAI_API_KEY is not set')
+        return (
+            'Здесь должен быть ответ от искусственного интеллекта. Чтобы включить AI, '
+            'установите OPENAI_API_KEY в переменных окружения и перезапустите сервер.'
+        )
+
+    history = ChatMessage.query.filter_by(user_id=user.id).order_by(ChatMessage.created_at.asc()).all()
+    try:
+        response = openai.ChatCompletion.create(
+            model='gpt-3.5-turbo',
+            messages=_build_chat_prompt(user, user_message, history),
+            temperature=0.7,
+            max_tokens=350,
+        )
+        # newlines and whitespace cleanup
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        app.logger.exception('OpenAI chat error')
+        return (
+            'Не удалось получить ответ от AI. Попробуйте позже или проверьте настройку OPENAI_API_KEY.'
+        )
+
+
+@app.route('/api/chat/history', methods=['GET'])
+@login_required
+def chat_history():
+    uid = session['user_id']
+    messages = ChatMessage.query.filter_by(user_id=uid).order_by(ChatMessage.created_at.asc()).all()
+    return jsonify({'messages': [
+        {'id': m.id, 'role': m.role, 'text': m.text, 'created_at': m.created_at.isoformat()}
+        for m in messages
+    ]})
+
+
+@app.route('/api/chat', methods=['POST'])
+@login_required
+def chat():
+    data = request.json or {}
+    message_text = (data.get('message') or '').strip()
+    if not message_text:
+        return jsonify({'error': 'Message is required'}), 400
+
+    uid = session['user_id']
+    user = User.query.get(uid)
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+
+    user_msg = ChatMessage(user_id=uid, role='user', text=message_text)
+    db.session.add(user_msg)
+    db.session.commit()
+    try:
+        assistant_text = _get_ai_reply(user, message_text)
+        assistant_msg = ChatMessage(user_id=uid, role='assistant', text=assistant_text)
+        db.session.add(assistant_msg)
+        db.session.commit()
+        return jsonify({'reply': assistant_text})
+    except Exception as e:
+        app.logger.exception('Chat handler error')
+        return jsonify({'error': 'Internal server error'}), 500
+
+
+@app.route('/api/chat/clear', methods=['POST'])
+@login_required
+def chat_clear():
+    uid = session['user_id']
+    ChatMessage.query.filter_by(user_id=uid).delete()
+    db.session.commit()
+    return jsonify({'message': 'Chat history cleared'})
+
+
 # ─────────────────────────────────────────
 #  ADMIN ROUTES
 # ─────────────────────────────────────────
@@ -550,6 +657,7 @@ def admin_get_users():
                 'favorite_color': u.favorite_color,
                 'is_admin': u.is_admin,
                 'created_at': u.created_at.isoformat() if u.created_at else None,
+                'study_minutes': round(sum(s.duration_seconds for s in u.study_sessions) / 60) if u.study_sessions else 0,
             }
             for u in users
         ]

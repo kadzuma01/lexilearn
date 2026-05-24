@@ -155,6 +155,59 @@ h3 { font-size: 16px; font-weight: 600; }
   50%  { transform: scale(1.05); }
   100% { transform: scale(1); }
 }
+@keyframes progressBorderMove {
+  0% { background-position: 0% 0; }
+  100% { background-position: 300% 0; }
+}
+.overall-progress-card {
+  position: relative;
+  border-radius: 20px;
+  background: #1C1C1C;
+  overflow: hidden;
+}
+.overall-progress-card::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  z-index: 0;
+  border-radius: 22px;
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(74,144,226,0.25) 30%,
+      rgba(74,144,226,0.95) 50%,
+      rgba(74,144,226,0.25) 70%,
+      transparent 100%);
+  background-size: 300% 100%;
+  animation: progressBorderMove 5s linear infinite;
+}
+.overall-progress-card::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  z-index: 0;
+  border-radius: 18px;
+  background: #1C1C1C;
+}
+.overall-progress-card > * {
+  position: relative;
+  z-index: 1;
+}
+.overall-progress-value {
+  color: #b3cbff;
+}
+.overall-progress-bar {
+  background: #22252c;
+  border-radius: 10px;
+  height: 14px;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(74,144,226,0.18);
+}
+.overall-progress-bar-fill {
+  height: 100%;
+  border-radius: 10px;
+  background: #4A90E2;
+  transition: width 1.2s ease;
+}
 .fade-in  { animation: fadeIn  0.3s ease both; }
 .slide-up { animation: slideUp 0.35s ease both; }
 
